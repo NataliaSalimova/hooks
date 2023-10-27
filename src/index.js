@@ -2,7 +2,7 @@ import React, { Component, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
 const App = () => {
-    const [value, setValue] = useState(0);
+    const [value, setValue] = useState(1);
     const [visible, setVisible] = useState(true);
 
     if (visible) {
@@ -12,9 +12,7 @@ const App = () => {
                     onClick={() => setValue((v) => v + 1)}>+</button>
                 <button
                     onClick={() => setVisible(false)}>Hide</button>
-                <ClassCounter value={value}/>
-                <HookCounter value={value}/>
-                <Notification/>
+                <PlanetInfo id={value} />
             </div>
         )
     } else {
@@ -23,57 +21,20 @@ const App = () => {
     }
 };
 
-const HookCounter = ({ value })=> {
-    useEffect(()=> {
-        console.log('mount');
-    }, []);
+const PlanetInfo= ({id}) => {
+    const [ name, setName ] = useState(null);
 
-    useEffect(()=> {
-        console.log('update');
-    });
-
-    useEffect(()=> {
-        console.log('unmount');
-    }, []);
-
-    return <p> {value} </p>
-};
-
-const Notification = () => {
-
-    const [visible, setVisible] = useState(true);
-
-    useEffect(()=> {
-        const timeout = setTimeout(()=> {
-            setVisible(false);
-        }, 2500);
-
-        return ()=> clearTimeout(timeout);
-    }, []);
+    useEffect(() => {
+        let canceled = false;
+        fetch(`https://swapi.dev/api/planets/${id}/`)
+            .then(res => res.json())
+            .then(data=> !canceled && setName(data.name));
+        return ()=> canceled = true;
+    }, [id]);
 
     return (
-        <div>
-            { visible && <p>Hello</p> }
-        </div>
-    );
-}
-
-class ClassCounter extends Component {
-    componentDidMount() {
-        console.log('class: mount');
-    }
-
-    componentDidUpdate(props) {
-        console.log('class: update');
-    }
-
-    componentWillUnmount() {
-        console.log('class: unmount');
-    }
-
-    render() {
-        return <p>{this.props.value}</p>
-    }
-}
+        <div>{id} - {name}</div>
+    )
+};
 
 ReactDOM.render(<App/>, document.getElementById('root'));
